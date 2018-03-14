@@ -1,19 +1,36 @@
-/*
-Copyright IBM Corp. 2016 All Rights Reserved.
+		return common.RespondError(&resErr)
+	}
+	MerchantId := args[0]
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+	queryString := fmt.Sprintf("{\"selector\":{\"ReceiveMerchantId\":\"%s\"}}", MerchantId)
+	result, err := getDetailTransaction(stub, queryString)
 
-		 http://www.apache.org/licenses/LICENSE-2.0
+	if err != nil {
+		//Get data fail
+		resErr := common.ResponseError{common.ERR3, fmt.Sprintf("%s %s", common.ResCodeDict[common.ERR3], err.Error())}
+		return common.RespondError(&resErr)
+	}
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+	if string(result[:]) != "[]" {
+		//Success
+		resSuc := common.ResponseSuccess{common.SUCCESS, common.ResCodeDict[common.SUCCESS], string(result[:])}
+		return common.RespondSuccess(&resSuc)
+	}else{
+		//No data valid
+		resErr := common.ResponseError{common.ERR8, common.ResCodeDict[common.ERR8]}
+		return common.RespondError(&resErr)
+	}
+}
 
+func getDetailTransaction(stub shim.ChaincodeStubInterface, queryString string) ([]byte, error) {
+
+	fmt.Printf("- getQueryResultForQueryString queryString:\n%s\n", queryString)
+
+	resultsIterator, err := stub.GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
 package main
 
 import (
