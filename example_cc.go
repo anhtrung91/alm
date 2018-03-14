@@ -188,87 +188,24 @@ func (t *Chaincode) move(stub shim.ChaincodeStubInterface, args []string) pb.Res
 	if err != nil {
 		return shim.Error("Failed to get state")
 	}
-	if Avalbytes == nil {
-		return shim.Error("Entity not found")
-	}
-	Aval, _ = strconv.Atoi(string(Avalbytes))
 
-	Bvalbytes, err := stub.GetState(B)
-	if err != nil {
-		return shim.Error("Failed to get state")
-	}
-	if Bvalbytes == nil {
-		return shim.Error("Entity not found")
-	}
-	Bval, _ = strconv.Atoi(string(Bvalbytes))
+curl -s -X POST \
+  http://localhost:4000/channels/mychannel/chaincodes/mycc \
+  -H "content-type: application/json" \
+  -d '{
+	"peers": ["peer0.org1.example.com","peer1.org1.example.com"],
+	"fcn":"get_top_exchanged",
+	"args":["day"]
+}'
 
-	// Perform the execution
-	X, err = strconv.Atoi(args[2])
-	if err != nil {
-		return shim.Error("Invalid transaction amount, expecting a integer value")
-	}
-	Aval = Aval - X
-	Bval = Bval + X
-	logger.Infof("Aval = %d, Bval = %d\n", Aval, Bval)
-
-	// Write the state back to the ledger
-	err = stub.PutState(A, []byte(strconv.Itoa(Aval)))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	err = stub.PutState(B, []byte(strconv.Itoa(Bval)))
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-
-	return shim.Success(nil)
-}
-
-// Deletes an entity from state
-func (t *Chaincode) delete(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
-
-	A := args[0]
-
-	// Delete the key from the state in ledger
-	err := stub.DelState(A)
-	if err != nil {
-		return shim.Error("Failed to delete state")
-	}
-
-	return shim.Success(nil)
-}
-
-// Query callback representing the query of a chaincode
-func (t *Chaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
-	var A string // Entities
-	var err error
-
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting name of the person to query")
-	}
-
-	A = args[0]
-
-	// Get the state from the ledger
-	Avalbytes, err := stub.GetState(A)
-	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + A + "\"}"
-		return shim.Error(jsonResp)
-	}
-
-	if Avalbytes == nil {
-		jsonResp := "{\"Error\":\"Nil amount for " + A + "\"}"
-		return shim.Error(jsonResp)
-	}
-
-	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
-	logger.Infof("Query Response:%s\n", jsonResp)
-	return shim.Success(Avalbytes)
+curl -s -X POST \
+  http://localhost:4000/channels/mychannel/chaincodes/mycc \
+  -H "content-type: application/json" \
+  -d '{
+	"peers": ["peer0.org1.example.com","peer1.org1.example.com"],
+	"fcn":"create_transaction",
+	"args":["1","1","50","10","10","10","10","10","1"]
+}'
 }
 
 func main() {
