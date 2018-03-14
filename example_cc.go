@@ -1,36 +1,14 @@
-		return common.RespondError(&resErr)
-	}
-	MerchantId := args[0]
-
-	queryString := fmt.Sprintf("{\"selector\":{\"ReceiveMerchantId\":\"%s\"}}", MerchantId)
-	result, err := getDetailTransaction(stub, queryString)
-
-	if err != nil {
-		//Get data fail
-		resErr := common.ResponseError{common.ERR3, fmt.Sprintf("%s %s", common.ResCodeDict[common.ERR3], err.Error())}
-		return common.RespondError(&resErr)
-	}
-
-	if string(result[:]) != "[]" {
-		//Success
-		resSuc := common.ResponseSuccess{common.SUCCESS, common.ResCodeDict[common.SUCCESS], string(result[:])}
-		return common.RespondSuccess(&resSuc)
-	}else{
-		//No data valid
-		resErr := common.ResponseError{common.ERR8, common.ResCodeDict[common.ERR8]}
-		return common.RespondError(&resErr)
-	}
-}
-
-func getDetailTransaction(stub shim.ChaincodeStubInterface, queryString string) ([]byte, error) {
-
-	fmt.Printf("- getQueryResultForQueryString queryString:\n%s\n", queryString)
-
-	resultsIterator, err := stub.GetQueryResult(queryString)
-	if err != nil {
-		return nil, err
-	}
-	defer resultsIterator.Close()
+queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		// Record is a JSON object, so we write as-is
+		buffer.WriteString(string(queryResponse.Value))
+		bArrayMemberAlreadyWritten = true
 package main
 
 import (
